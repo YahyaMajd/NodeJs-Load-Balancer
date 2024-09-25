@@ -37,7 +37,9 @@ Alternatively, you can start the round-robin load balancer:
   node loadBalancer.js
 
 ##How It Works
+
 ###Least Connections Algorithm:
+
 The load balancer routes incoming traffic to the server with the fewest active connections.
 The connection count is incremented before proxying the request and decremented after the response is sent.
 
