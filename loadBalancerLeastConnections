@@ -1,0 +1,60 @@
+// leastConnections.js
+const http = require('http');
+const httpProxy = require('http-proxy');
+const servers = require('./serverList'); // Import the server list
+const { startHealthChecks } = require('./healthCheck'); // Import health check module
+
+
+const proxy = httpProxy.createProxyServer({});
+
+// Start health checks with a default interval of 5 seconds
+startHealthChecks();
+
+// Least Connections Algorithm
+function leastConnections() {
+  // Filter servers that are up and running
+  const availableServers = servers.filter(server => server.status === 'up');
+  if (availableServers.length === 0) return null;
+
+  // Find the server with the least number of active connections
+  return availableServers.reduce((prev, current) => {
+    return (prev.connections < current.connections) ? prev : current;
+  });
+}
+
+// Load Balancer Server
+const loadBalancerPort = 3001;
+
+const server = http.createServer((req, res) => {
+  // Use least connections algorithm to select a server
+  const targetServer = leastConnections();
+
+  if (!targetServer) {
+    // No healthy servers available
+    res.writeHead(502, { 'Content-Type': 'text/plain' });
+    res.end('No healthy servers available.');
+    return;
+  }
+
+  // Log the server being used
+  console.log(`Routing request to: ${targetServer.url} (Connections: ${targetServer.connections})`);
+
+  // Increment the connection count before proxying the request
+  targetServer.connections += 1;
+
+  // Proxy the request to the selected server
+  proxy.web(req, res, { target: targetServer.url }, (err) => {
+    console.error('Proxy error:', err);
+    res.writeHead(500, { 'Content-Type': 'text/plain' });
+    res.end('Proxy error occurred.');
+  });
+
+  // Decrement the connection count after the response ends
+  res.on('finish', () => {
+    targetServer.connections -= 1;
+  });
+});
+
+server.listen(loadBalancerPort, () => {
+  console.log(`Load balancer with least connections algorithm running on port ${loadBalancerPort}`);
+});
