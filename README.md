@@ -36,26 +36,26 @@ Start the Load Balancer: Start the load balancer using the least connections alg
 Alternatively, you can start the round-robin load balancer:
   node loadBalancer.js
 
-##How It Works
+## How It Works
 
-###Least Connections Algorithm:
+### Least Connections Algorithm:
 
 The load balancer routes incoming traffic to the server with the fewest active connections.
 The connection count is incremented before proxying the request and decremented after the response is sent.
 
-###Health Checks:
+### Health Checks:
 The health check module (healthCheck.js) periodically sends a request to each server’s /health endpoint.
 Servers that respond with a status of 200 are marked as up.
 Servers that fail to respond or return an error are marked as down and excluded from the load balancing rotation.
 
-###Failover Handling:
+### Failover Handling:
 If no healthy servers are available, the load balancer returns a 502 error indicating that no servers are available.
 
-##Testing the Load Balancer
+## Testing the Load Balancer
 Send Requests to the Load Balancer:
 Open a new terminal window and send multiple requests to the load balancer:
 curl http://localhost:3001/
 Observe the routing behavior in the terminal window running the load balancer.
 
-###Simulate Server Failures:
+### Simulate Server Failures:
 Stop one of the placeholder servers and observe how the load balancer detects the failure and reroutes traffic to the remaining healthy servers.
