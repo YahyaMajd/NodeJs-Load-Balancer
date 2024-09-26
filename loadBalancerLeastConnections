@@ -1,13 +1,17 @@
-// leastConnections.js
+const express = require('express'); // Express for middleware
 const http = require('http');
 const httpProxy = require('http-proxy');
-const servers = require('./serverList'); // Import the server list
-const { startHealthChecks } = require('./healthCheck'); // Import health check module
+const servers = require('./serverList');
+const { startHealthChecks } = require('./healthCheck');
+const rateLimiter = require('./rateLimiter'); // Import the rate limiter
 
-
+const app = express();
 const proxy = httpProxy.createProxyServer({});
 
-// Start health checks with a default interval of 5 seconds
+// Apply rate limiting middleware to all routes
+app.use(rateLimiter);
+
+// Start health checks
 startHealthChecks();
 
 // Least Connections Algorithm

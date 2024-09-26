@@ -3,9 +3,11 @@ const http = require('http');
 const httpProxy = require('http-proxy');
 const servers = require('./serverList'); // Import the server list
 const { startHealthChecks } = require('./healthCheck'); // Import health check module
+const rateLimiter = require('./rateLimiter'); // Import the rate limiter
 
 const proxy = httpProxy.createProxyServer({});
 
+app.use(rateLimiter);
 // Start health checks with a default interval of 5 seconds
 startHealthChecks();
 
