@@ -1,5 +1,4 @@
 const express = require('express'); // Express for middleware
-const http = require('http');
 const httpProxy = require('http-proxy');
 const servers = require('./serverList');
 const { startHealthChecks } = require('./healthCheck');
@@ -10,6 +9,12 @@ const proxy = httpProxy.createProxyServer({});
 
 // Apply rate limiting middleware to all routes
 app.use(rateLimiter);
+// route to reset the rate limit manually for testing:
+app.post('/reset-rate-limit', (req, res) => {
+  rateLimiter.resetKey(req.ip);
+  console.log(`Rate limit reset for IP: ${req.ip}`);
+  res.send('Rate limit reset for your IP');
+});
 
 // Start health checks
 startHealthChecks();
@@ -26,10 +31,8 @@ function leastConnections() {
   });
 }
 
-// Load Balancer Server
-const loadBalancerPort = 3001;
-
-const server = http.createServer((req, res) => {
+// Route for handling incoming requests
+app.use((req, res) => {
   // Use least connections algorithm to select a server
   const targetServer = leastConnections();
 
@@ -59,6 +62,8 @@ const server = http.createServer((req, res) => {
   });
 });
 
-server.listen(loadBalancerPort, () => {
-  console.log(`Load balancer with least connections algorithm running on port ${loadBalancerPort}`);
+const port = 3001;
+
+app.listen(port, () => {
+  console.log(`Load balancer with least connections algorithm running on port ${port}`);
 });
